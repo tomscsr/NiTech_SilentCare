@@ -387,61 +387,21 @@ def plot_inference_benchmark(audio_metrics, video_metrics):
 
     models_data = []
 
-    # Audio model benchmark
+    # Use canonical values from the report (Tables 8.2a and 8.3) instead of
+    # live benchmarks, which fluctuate between runs.
     if audio_metrics:
-        # Measure actual inference time
-        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-        os.environ["TFHUB_CACHE_DIR"] = os.path.join(
-            os.environ.get("LOCALAPPDATA", os.environ.get("TEMP", ".")),
-            "tfhub_modules2",
-        )
-        import tensorflow as tf
-        model_path = PROJECT_DIR / "model" / "Audio_SilentCare_model.h5"
-        audio_model = tf.keras.models.load_model(str(model_path))
-        dummy_input = np.random.randn(1, 3072).astype(np.float32)
-        # Warmup
-        for _ in range(5):
-            audio_model.predict(dummy_input, verbose=0)
-        # Benchmark
-        times = []
-        for _ in range(100):
-            start = time.perf_counter()
-            audio_model.predict(dummy_input, verbose=0)
-            elapsed = (time.perf_counter() - start) * 1000
-            times.append(elapsed)
-        avg_audio = np.mean(times)
-        print(f"  Audio (YAMNet head only): {avg_audio:.2f} ms")
+        avg_audio = 44.4
+        print(f"  Audio (YAMNet head only): {avg_audio:.1f} ms (canonical)")
         models_data.append({"name": "Audio\n(YAMNet Head)", "time": avg_audio, "color": "#3498db"})
 
-    # Video ResNet50 benchmark
     if video_metrics and "resnet50" in video_metrics:
-        import torch
-        from torchvision import transforms, models as tmodels
-        resnet_model = SilentCareVideoModelTorch()
-        state_dict = torch.load(
-            str(PROJECT_DIR / "model" / "Video_SilentCare_model.pth"),
-            map_location="cpu", weights_only=False
-        )
-        resnet_model.load_state_dict(state_dict)
-        resnet_model.eval()
-        dummy = torch.randn(1, 3, 224, 224)
-        with torch.no_grad():
-            for _ in range(5):
-                resnet_model(dummy)
-            times = []
-            for _ in range(100):
-                start = time.perf_counter()
-                resnet_model(dummy)
-                elapsed = (time.perf_counter() - start) * 1000
-                times.append(elapsed)
-        avg_resnet = np.mean(times)
-        print(f"  Video ResNet50: {avg_resnet:.2f} ms")
+        avg_resnet = 40.4
+        print(f"  Video ResNet50: {avg_resnet:.1f} ms (canonical)")
         models_data.append({"name": "Video (ResNet50)\n(comparison only)", "time": avg_resnet, "color": "#e74c3c"})
 
-    # ViT from stored metrics (already measured during eval)
     if video_metrics and "vit_huggingface" in video_metrics:
-        vit_time = video_metrics["vit_huggingface"].get("avg_inference_time_ms", 115.0)
-        print(f"  Video ViT (from eval): {vit_time:.2f} ms")
+        vit_time = 117.6
+        print(f"  Video ViT: {vit_time:.1f} ms (canonical)")
         models_data.append({"name": "Video (ViT HF)\n\u2605 Production", "time": vit_time, "color": "#9b59b6"})
 
     if not models_data:

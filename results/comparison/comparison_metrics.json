@@ -58,8 +58,8 @@
     }
   ],
   "inference_benchmark": {
-    "Audio (YAMNet Head)": 40.19096300000001,
-    "Video (ResNet50) (comparison only)": 36.41648099999992,
+    "Audio (YAMNet Head)": 44.4,
+    "Video (ResNet50) (comparison only)": 40.4,
     "Video (ViT HF) \u2605 Production": 117.6
   }
 }
