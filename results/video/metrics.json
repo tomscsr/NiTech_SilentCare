@@ -35,37 +35,46 @@
   },
   "vit_huggingface": {
     "model": "ViT (trpakov/vit-face-expression)",
+    "dataset": "FER-2013 test",
+    "num_test_samples": 7178,
+    "accuracy": 0.7813,
+    "f1_macro": 0.7613,
+    "f1_weighted": 0.7639,
+    "per_class": {
+      "DISTRESS": {
+        "precision": 0.7278,
+        "recall": 0.7552,
+        "f1": 0.7412,
+        "support": 2382
+      },
+      "ANGRY": {
+        "precision": 0.6348,
+        "recall": 0.6367,
+        "f1": 0.6357,
+        "support": 958
+      },
+      "ALERT": {
+        "precision": 0.8327,
+        "recall": 0.8026,
+        "f1": 0.8174,
+        "support": 831
+      },
+      "CALM": {
+        "precision": 0.8601,
+        "recall": 0.842,
+        "f1": 0.8509,
+        "support": 3007
+      }
+    },
+    "avg_inference_time_ms": 117.6
+  },
+  "vit_huggingface_rafdb": {
+    "model": "ViT (trpakov/vit-face-expression) on RAF-DB",
+    "dataset": "RAF-DB test",
     "num_test_samples": 3068,
     "accuracy": 0.7229465449804433,
     "f1_macro": 0.617240913431152,
-    "f1_weighted": 0.7309883892139826,
-    "per_class": {
-      "DISTRESS": {
-        "precision": 0.5387131952017448,
-        "recall": 0.6938202247191011,
-        "f1": 0.6065070595457336,
-        "support": 712
-      },
-      "ANGRY": {
-        "precision": 0.36176470588235293,
-        "recall": 0.7592592592592593,
-        "f1": 0.4900398406374502,
-        "support": 162
-      },
-      "ALERT": {
-        "precision": 0.9465648854961832,
-        "recall": 0.3768996960486322,
-        "f1": 0.5391304347826087,
-        "support": 329
-      },
-      "CALM": {
-        "precision": 0.8791666666666667,
-        "recall": 0.7919571045576408,
-        "f1": 0.8332863187588153,
-        "support": 1865
-      }
-    },
     "avg_inference_time_ms": 115.15416730769222
   },
-  "best_model": "resnet50"
+  "best_model": "vit_huggingface"
 }

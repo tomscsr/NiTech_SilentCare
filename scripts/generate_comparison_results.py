@@ -222,7 +222,7 @@ def plot_video_progression(video_metrics):
     if video_metrics and "resnet50" in video_metrics:
         m = video_metrics["resnet50"]
         systems.append({
-            "name": "ResNet50\nFine-tuned\n(SilentCare)",
+            "name": "ResNet50\nFine-tuned\n(RAF-DB, in-domain)",
             "accuracy": m["accuracy"],
             "f1_macro": m["f1_macro"],
             "color": "#e74c3c",
@@ -232,7 +232,7 @@ def plot_video_progression(video_metrics):
     if video_metrics and "vit_huggingface" in video_metrics:
         m = video_metrics["vit_huggingface"]
         systems.append({
-            "name": "ViT\n(HuggingFace)\nProduction",
+            "name": "\u2605 ViT (HuggingFace)\nProduction\n(FER-2013, webcam-like)",
             "accuracy": m["accuracy"],
             "f1_macro": m["f1_macro"],
             "color": "#9b59b6",
@@ -343,11 +343,11 @@ def plot_full_progression(audio_metrics, video_metrics):
                               "color": "#bdc3c7", "hatch": "//"})
     if video_metrics and "resnet50" in video_metrics:
         m = video_metrics["resnet50"]
-        video_systems.append({"name": "ResNet50\n(SilentCare)", "acc": m["accuracy"],
+        video_systems.append({"name": "ResNet50\n(RAF-DB, in-domain)", "acc": m["accuracy"],
                               "f1": m["f1_macro"], "color": "#e74c3c", "hatch": ""})
     if video_metrics and "vit_huggingface" in video_metrics:
         m = video_metrics["vit_huggingface"]
-        video_systems.append({"name": "ViT (HF)\nProduction", "acc": m["accuracy"],
+        video_systems.append({"name": "\u2605 ViT (HF)\nProduction\n(FER-2013, webcam-like)", "acc": m["accuracy"],
                               "f1": m["f1_macro"], "color": "#9b59b6", "hatch": ""})
 
     x = np.arange(len(video_systems))
@@ -436,13 +436,13 @@ def plot_inference_benchmark(audio_metrics, video_metrics):
                 times.append(elapsed)
         avg_resnet = np.mean(times)
         print(f"  Video ResNet50: {avg_resnet:.2f} ms")
-        models_data.append({"name": "Video\n(ResNet50)", "time": avg_resnet, "color": "#e74c3c"})
+        models_data.append({"name": "Video (ResNet50)\n(comparison only)", "time": avg_resnet, "color": "#e74c3c"})
 
     # ViT from stored metrics (already measured during eval)
     if video_metrics and "vit_huggingface" in video_metrics:
         vit_time = video_metrics["vit_huggingface"].get("avg_inference_time_ms", 115.0)
         print(f"  Video ViT (from eval): {vit_time:.2f} ms")
-        models_data.append({"name": "Video\n(ViT HF)", "time": vit_time, "color": "#9b59b6"})
+        models_data.append({"name": "Video (ViT HF)\n\u2605 Production", "time": vit_time, "color": "#9b59b6"})
 
     if not models_data:
         print("  No models available for benchmark!")

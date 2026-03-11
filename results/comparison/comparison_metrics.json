@@ -51,15 +51,15 @@
       "source": "evaluated (this study)"
     },
     {
-      "name": "ViT HuggingFace (evaluated)",
-      "accuracy": 0.7229465449804433,
-      "f1_macro": 0.617240913431152,
+      "name": "ViT HuggingFace (production)",
+      "accuracy": 0.7813,
+      "f1_macro": 0.7613,
       "source": "evaluated (this study)"
     }
   ],
   "inference_benchmark": {
-    "Audio (YAMNet Head)": 44.400115000000035,
-    "Video (ResNet50)": 38.20597599999994,
-    "Video (ViT HF)": 115.15416730769222
+    "Audio (YAMNet Head)": 40.19096300000001,
+    "Video (ResNet50) (comparison only)": 36.41648099999992,
+    "Video (ViT HF) \u2605 Production": 117.6
   }
 }

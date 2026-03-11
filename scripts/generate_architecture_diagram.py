@@ -105,12 +105,12 @@ def main():
 
     # === FUSION ===
     draw_box(ax, 4.0, 2.7, 3.8, 0.8,
-             "Adaptive Weighted Fusion\n0.35 x Audio + 0.65 x Video\n+ Agreement Boost (x1.3) + Uncertainty Gate",
+             "Adaptive Weighted Fusion\n0.30 x Audio + 0.70 x Video\n+ Agreement Boost (x1.3) + Uncertainty Gate",
              C_FUSION, fontsize=8, fontweight="bold")
     draw_arrow(ax, 2.5, 3.5, 3.0, 3.15, C_AUDIO, lw=2)
     draw_arrow(ax, 5.5, 3.5, 5.0, 3.15, C_VIDEO, lw=2)
-    draw_label(ax, 2.2, 3.3, "w=0.35")
-    draw_label(ax, 5.8, 3.3, "w=0.65")
+    draw_label(ax, 2.2, 3.3, "w=0.30")
+    draw_label(ax, 5.8, 3.3, "w=0.70")
 
     # === OUTPUT ===
     draw_box(ax, 4.0, 1.5, 3.0, 0.6,
