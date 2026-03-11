@@ -1,0 +1,34 @@
+{
+  "model": "vit",
+  "dataset": "FER-2013 test",
+  "num_samples": 7178,
+  "accuracy": 0.7813,
+  "f1_macro": 0.7613,
+  "avg_inference_ms": 117.6,
+  "per_class": {
+    "DISTRESS": {
+      "precision": 0.7278,
+      "recall": 0.7552,
+      "f1": 0.7412,
+      "support": 2382
+    },
+    "ANGRY": {
+      "precision": 0.6348,
+      "recall": 0.6367,
+      "f1": 0.6357,
+      "support": 958
+    },
+    "ALERT": {
+      "precision": 0.8327,
+      "recall": 0.8026,
+      "f1": 0.8174,
+      "support": 831
+    },
+    "CALM": {
+      "precision": 0.8601,
+      "recall": 0.842,
+      "f1": 0.8509,
+      "support": 3007
+    }
+  }
+}

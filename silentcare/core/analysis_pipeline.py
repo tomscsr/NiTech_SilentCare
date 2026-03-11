@@ -81,11 +81,11 @@ class AnalysisPipeline:
         else:
             print(f"[Pipeline] WARNING: Audio model not found at {audio_path}")
 
-        # Video model (ResNet50 fine-tuned on RAF-DB)
+        # Video model (ViT HuggingFace, trained on FER-2013)
         try:
             from silentcare.ml.video_model import VideoModel
             self._video_model = VideoModel()
-            print("[Pipeline] Video model loaded (ResNet50).")
+            print("[Pipeline] Video model loaded (ViT HuggingFace).")
         except Exception as e:
             print(f"[Pipeline] WARNING: Video model failed to load: {e}")
 

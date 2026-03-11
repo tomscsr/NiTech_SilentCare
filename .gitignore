@@ -2,6 +2,8 @@
 data/audio_dataset/
 data/feedback/
 data/offline/
+data/FER2013/
+data/image/
 
 
 # Claude Code / MCP
@@ -41,3 +43,9 @@ Thumbs.db
 
 # Training logs (large, not needed for inference)
 model/*_log*.txt
+
+# Evaluation intermediate files
+results/*_predictions.npy
+
+# Diagnostic outputs
+diagnostic/

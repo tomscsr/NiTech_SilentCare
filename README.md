@@ -51,7 +51,7 @@ SilentCare is a research prototype designed to detect the emotional states of pe
      (capture_service.py)        (analysis_pipeline.py)
        |           |                |          |
    Audio thread  Video thread   AudioModel  VideoModel
-   (sounddevice) (OpenCV)       (YAMNet+    (ResNet50)
+   (sounddevice) (OpenCV)       (YAMNet+    (ViT HuggingFace)
                                  Keras)
        |           |                |          |
        +-----+-----+          Fusion (weighted avg
@@ -95,7 +95,8 @@ SilentCare/
 |   |
 |   |-- ml/
 |   |   |-- audio_model.py          # YAMNet + Keras classification head
-|   |   |-- video_model.py          # ResNet50 + face detection (ViT available via use_vit=True)
+|   |   |-- audio_preprocessor.py   # Noise reduction, VAD, normalisation
+|   |   |-- video_model.py          # ViT HuggingFace + face detection (ResNet50 available via use_resnet=True)
 |   |
 |   |-- training/
 |       |-- train_audio.py          # Audio model training script
@@ -104,8 +105,7 @@ SilentCare/
 |-- model/
 |   |-- Audio_SilentCare_model.h5   # Audio classification head (Keras)
 |   |-- audio_silentcare_classes.npy
-|   |-- Video_SilentCare_model.pth  # Video backbone (ResNet50, production model)
-|   |-- Video_SilentCare_temporal.pth
+|   |-- Video_SilentCare_model.pth  # Video backbone (ResNet50, comparison only)
 |
 |-- templates/
 |   |-- index.html                  # Live monitoring dashboard
@@ -118,6 +118,8 @@ SilentCare/
 |-- scripts/
 |   |-- prepare_audio_dataset.py    # Audio dataset preparation
 |   |-- finetune_from_feedback.py   # Fine-tuning from human feedback
+|   |-- evaluate_fer2013.py         # FER-2013 evaluation (ViT vs ResNet50)
+|   |-- diagnose_video.py           # Webcam video pipeline diagnostic
 |
 |-- tests/                          # Test suite (132 tests)
 |
@@ -151,8 +153,8 @@ pip install -r requirements.txt
 |------------------|------------------------------------------------|
 | tensorflow       | Audio model (YAMNet + Keras)                   |
 | tensorflow-hub   | YAMNet embedding extraction                    |
-| torch            | Video model (ResNet50)                         |
-| transformers     | ViT evaluation only (optional, not required for production) |
+| torch            | Video model (ResNet50 comparison)               |
+| transformers     | Video model (ViT HuggingFace, production)       |
 | opencv-python    | Video capture + face detection                 |
 | sounddevice      | Real-time audio capture                        |
 | librosa          | Audio processing (resampling)                  |
@@ -196,9 +198,9 @@ SilentCare - Emotional Monitoring System
 [Init] Capture: audio=ON, video=ON
 [Init] Loading ML models...
 [Pipeline] Audio model loaded.
-[VideoModel] Loading ResNet50 from model/Video_SilentCare_model.pth
-[VideoModel] Model loaded successfully.
-[Pipeline] Video model loaded (ResNet50).
+[VideoModel] Loading ViT from HuggingFace: trpakov/vit-face-expression
+[VideoModel] ViT loaded successfully.
+[Pipeline] Video model loaded (ViT HuggingFace).
 
 [Ready] Dashboard: http://localhost:5000
 [Ready] Press Ctrl+C to stop.
@@ -238,7 +240,7 @@ Before the waveform reaches YAMNet, a preprocessing stage handles three tasks:
 
 All three steps are individually configurable via `config.py` (`AUDIO_NOISE_REDUCTION`, `AUDIO_VAD_ENABLED`).
 
-### Video Model: ResNet50
+### Video Model: ViT HuggingFace (Production)
 
 **File**: `silentcare/ml/video_model.py`
 
@@ -246,16 +248,21 @@ All three steps are individually configurable via `config.py` (`AUDIO_NOISE_REDU
 1. **Face detection**: Haar cascade (OpenCV) on CLAHE-enhanced grayscale
 2. **Enhancement**: LAB histogram equalization for dark / IR camera images
 3. **Crop**: largest detected face + 20% margin
-4. **Classification**: ResNet50 backbone (ImageNet pretrained) with custom head:
-   - Linear(2048 -> 512, ReLU) -> Dropout(0.5) -> Linear(512 -> 4, Softmax)
+4. **Classification**: ViT (`trpakov/vit-face-expression`, pre-trained on FER-2013) outputs 7 FER emotion scores, remapped to 4 SilentCare classes:
 
-**Input**: 224x224 RGB face crop, ImageNet-normalised
+| FER Label   | SilentCare Class |
+|-------------|------------------|
+| angry       | ANGRY            |
+| disgust     | DISTRESS         |
+| fear        | DISTRESS         |
+| sad         | DISTRESS         |
+| happy       | CALM             |
+| neutral     | CALM             |
+| surprise    | ALERT            |
 
-**Output**: probabilities over 4 SilentCare classes directly (no FER remapping at inference)
+**Why ViT over ResNet50?** A ResNet50 fine-tuned on RAF-DB (posed studio photos) was evaluated but shows severe domain shift on webcam input -- predicting DISTRESS >90% on calm faces. ViT, pre-trained on FER-2013 (webcam-like images), generalises significantly better to real conditions. Both models were evaluated on the FER-2013 test set (7178 images, see [Training Results](#training-results)).
 
-The FER-to-SilentCare mapping (7 emotions -> 4 classes) was used only during **training data preparation** from RAF-DB. At inference time, ResNet50 outputs 4-class probabilities directly.
-
-A ViT model (`trpakov/vit-face-expression`) is accessible via `use_vit=True` for comparison purposes but is not used in production.
+A ResNet50 model is still available via `VideoModel(use_resnet=True)` for comparison.
 
 **Multi-frame averaging**: for each segment, 15 frames are analysed individually. Predictions are averaged with linear weighting (more recent frames weighted higher, from 0.5 to 1.0).
 
@@ -263,7 +270,7 @@ A ViT model (`trpakov/vit-face-expression`) is accessible via `use_vit=True` for
 
 ### IR Camera / Low-Light Support
 
-Face detection uses CLAHE (Contrast Limited Adaptive Histogram Equalization) on grayscale before the Haar cascade, enabling detection even on infrared cameras (Windows Hello) or in low-light conditions. The face crop is further enhanced via LAB histogram equalization before sending to ResNet50.
+Face detection uses CLAHE (Contrast Limited Adaptive Histogram Equalization) on grayscale before the Haar cascade, enabling detection even on infrared cameras (Windows Hello) or in low-light conditions. The face crop is further enhanced via LAB histogram equalization before classification.
 
 ---
 
@@ -411,7 +418,7 @@ python scripts/finetune_from_feedback.py
 # Fine-tune audio (Keras head on YAMNet)
 python scripts/finetune_from_feedback.py --audio-only --confirm
 
-# Fine-tune video (ResNet50 4-class head)
+# Fine-tune video (ResNet50 4-class head, for comparison model)
 python scripts/finetune_from_feedback.py --video-only --confirm
 
 # Both models + mix with original data
@@ -483,7 +490,7 @@ All parameters are centralised in this single file.
 | AUDIO_CLASSES_PATH | `model/audio_silentcare_classes.npy` |
 | VIDEO_MODEL_PATH   | `model/Video_SilentCare_model.pth`  |
 
-The production video model is ResNet50 (`Video_SilentCare_model.pth`). The ViT HuggingFace model (`trpakov/vit-face-expression`) was evaluated but is not used in production (FER-2013 domain mismatch with RAF-DB, 115 ms inference exceeds the 100 ms real-time threshold).
+The production video model is **ViT HuggingFace** (`trpakov/vit-face-expression`), downloaded automatically on first run. `Video_SilentCare_model.pth` is the ResNet50 model available for comparison via `use_resnet=True`.
 
 ---
 
@@ -521,11 +528,14 @@ The production video model is ResNet50 (`Video_SilentCare_model.pth`). The ViT H
 
 ### Training Results
 
-| Model          | Accuracy | F1 Macro | DISTRESS F1 |
-|----------------|----------|----------|-------------|
-| Audio          | 71.0%    | 0.699    | 0.838       |
-| Video (ResNet50)| 76.2%   | 0.766    | --          |
-| **Fusion**     | **89.6%**| **0.895**| --          |
+| Model                  | Dataset    | Accuracy  | F1 Macro | DISTRESS F1 |
+|------------------------|------------|-----------|----------|-------------|
+| Audio                  | Custom     | 71.0%     | 0.699    | 0.838       |
+| **Video (ViT)**        | FER-2013   | **78.1%** | **0.761**| **0.741**   |
+| Video (ResNet50)       | RAF-DB     | 76.2%     | 0.766    | --          |
+| Video (ResNet50)       | FER-2013   | 47.5%     | 0.450    | 0.469       |
+
+ResNet50 achieves 76.2% on RAF-DB (its training domain) but only 47.5% on FER-2013 (webcam-like images), confirming the domain shift. ViT achieves 78.1% on FER-2013 without any fine-tuning, demonstrating better generalisation to real webcam conditions.
 
 ---
 
@@ -561,7 +571,7 @@ The default camera (device 0) may be an infrared camera on modern laptops. Image
 
 ### Video Domain Shift
 
-ResNet50 was trained on RAF-DB (posed studio photos) and may generalise less well to real-time webcam conditions with subtle, spontaneous expressions. The anti-false-positive mechanisms (DISTRESS-CALM margin, consecutive segments, cooldown) mitigate this gap.
+A ResNet50 model fine-tuned on RAF-DB (posed studio photos) was initially considered but showed severe domain shift on webcam input -- predicting DISTRESS >90% on calm faces. The production ViT model (pre-trained on FER-2013, which contains webcam-like images) generalises significantly better. The anti-false-positive mechanisms (DISTRESS-CALM margin, consecutive segments, cooldown) provide additional safety.
 
 ### Audio Silence
 

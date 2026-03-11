@@ -1,12 +1,12 @@
 """
 SilentCare - Video Model Wrapper
 ==================================
-Default: ResNet50 (locally trained on RAF-DB) for facial emotion recognition.
-Optional: ViT from HuggingFace (use_vit=True) for evaluation/comparison.
+Default: ViT from HuggingFace (trpakov/vit-face-expression, FER-2013).
+Optional: ResNet50 (use_resnet=True) for comparison (trained on RAF-DB).
 
 Face detection (Haar cascade) + cropping before inference.
-ResNet50 outputs 4-class logits directly.
 ViT outputs 7 FER emotions, remapped to 4 SilentCare classes.
+ResNet50 outputs 4-class logits directly.
 """
 
 import numpy as np
@@ -20,7 +20,7 @@ from pathlib import Path
 CLASSES = ["DISTRESS", "ANGRY", "ALERT", "CALM"]
 NUM_CLASSES = 4
 
-# HuggingFace FER labels -> SilentCare class index (used only in ViT mode)
+# HuggingFace FER labels -> SilentCare class index
 FER_TO_SILENTCARE = {
     "angry": 1,      # ANGRY
     "disgust": 0,     # DISTRESS
@@ -38,22 +38,22 @@ FEATURE_DIM = 512
 class VideoModel:
     """
     Video emotion classifier.
-    Default: ResNet50 fine-tuned on RAF-DB (4-class direct output).
-    Optional: HuggingFace ViT (7-class FER -> 4-class mapping).
+    Default: HuggingFace ViT (7-class FER -> 4-class mapping).
+    Optional: ResNet50 fine-tuned on RAF-DB (use_resnet=True, 4-class direct output).
 
     Face detection + CLAHE/LAB enhancement + classification.
     """
 
-    def __init__(self, model_path=None, use_vit=False,
+    def __init__(self, model_path=None, use_resnet=False,
                  vit_model_name="trpakov/vit-face-expression", **kwargs):
         """
         Args:
-            model_path: Path to ResNet50 .pth file. Auto-detected if None.
-            use_vit: If True, use HuggingFace ViT instead of ResNet50.
-            vit_model_name: HuggingFace model name (only used if use_vit=True).
+            model_path: Path to ResNet50 .pth file (only used if use_resnet=True).
+            use_resnet: If True, use ResNet50 instead of ViT.
+            vit_model_name: HuggingFace model name for ViT.
         """
         self.classes = CLASSES
-        self._use_vit = use_vit
+        self._use_vit = not use_resnet
 
         # Face detector (Haar cascade, ships with OpenCV)
         cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -62,10 +62,10 @@ class VideoModel:
         # CLAHE for low-light / IR camera enhancement
         self._clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
 
-        if use_vit:
-            self._load_vit(vit_model_name)
-        else:
+        if use_resnet:
             self._load_resnet50(model_path)
+        else:
+            self._load_vit(vit_model_name)
 
         self._ready = True
 
@@ -133,15 +133,15 @@ class VideoModel:
         print("[VideoModel] ResNet50 loaded successfully.")
 
     def _load_vit(self, model_name):
-        """Load the HuggingFace ViT model (for evaluation/comparison)."""
+        """Load the HuggingFace ViT model (production)."""
         from transformers import pipeline as hf_pipeline
-        print(f"[VideoModel] Loading HuggingFace ViT model: {model_name}")
+        print(f"[VideoModel] Loading ViT from HuggingFace: {model_name}")
         self._vit_classifier = hf_pipeline(
             "image-classification",
             model=model_name,
             top_k=7,
         )
-        print("[VideoModel] ViT model loaded successfully.")
+        print("[VideoModel] ViT loaded successfully.")
 
     @property
     def ready(self):

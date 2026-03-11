@@ -78,7 +78,11 @@ VIDEO_FRAMES_PER_SEGMENT = 15  # Frames extracted per 10s segment
 # ============================================
 AUDIO_MODEL_PATH = "model/Audio_SilentCare_model.h5"
 AUDIO_CLASSES_PATH = "model/audio_silentcare_classes.npy"
-VIDEO_MODEL_PATH = "model/Video_SilentCare_model.pth"
+VIDEO_MODEL_PATH = "model/Video_SilentCare_model.pth"  # ResNet50, only used with use_resnet=True
+
+# Video model: ViT HuggingFace (trpakov/vit-face-expression) is the production default.
+# ResNet50 was evaluated on RAF-DB (76.2%) but shows domain shift on webcam.
+# ViT trained on FER-2013 generalises better to real webcam conditions.
 
 # ============================================
 # Database
