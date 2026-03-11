@@ -3,10 +3,6 @@ data/audio_dataset/
 data/feedback/
 data/offline/
 
-# Model weights (hosted on GitHub Releases)
-model/*.h5
-model/*.pth
-model/*.npy
 
 # Claude Code / MCP
 .claude/

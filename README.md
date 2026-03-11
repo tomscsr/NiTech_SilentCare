@@ -142,9 +142,7 @@ SilentCare/
 cd SilentCare
 pip install -r requirements.txt
 
-# The audio model must be present at model/Audio_SilentCare_model.h5
-# The video model must be present at model/Video_SilentCare_model.pth
-# No HuggingFace download is required for production inference.
+# Model weights are included in the repository. No additional download required.
 ```
 
 ### Main Dependencies
