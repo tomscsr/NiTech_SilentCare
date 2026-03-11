@@ -1,0 +1,17 @@
+SilentCare Audio Model - Classification Report (Test Set)
+============================================================
+Model: Audio_SilentCare_model.h5 (YAMNet + Dense Head)
+Test split: 20%, random_state=42
+Total test samples: 376
+============================================================
+
+              precision    recall  f1-score   support
+
+    DISTRESS     0.9899    0.7259    0.8376       135
+       ANGRY     0.7273    0.7000    0.7134        80
+       ALERT     0.5698    0.6125    0.5904        80
+        CALM     0.5614    0.7901    0.6564        81
+
+    accuracy                         0.7101       376
+   macro avg     0.7121    0.7071    0.6994       376
+weighted avg     0.7523    0.7101    0.7195       376

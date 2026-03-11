@@ -1,0 +1,17 @@
+SilentCare Video Model - Classification Report (Test Set)
+============================================================
+Model: ViT (trpakov/vit-face-expression)
+Dataset: RAF-DB test partition (mapped to 4 SilentCare classes)
+Total test samples: 3068
+============================================================
+
+              precision    recall  f1-score   support
+
+    DISTRESS     0.5387    0.6938    0.6065       712
+       ANGRY     0.3618    0.7593    0.4900       162
+       ALERT     0.9466    0.3769    0.5391       329
+        CALM     0.8792    0.7920    0.8333      1865
+
+    accuracy                         0.7229      3068
+   macro avg     0.6816    0.6555    0.6172      3068
+weighted avg     0.7801    0.7229    0.7310      3068

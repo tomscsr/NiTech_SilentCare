@@ -1,0 +1,65 @@
+{
+  "audio_progression": [
+    {
+      "name": "Baseline CNN (proto_RAF)",
+      "accuracy": 0.35,
+      "f1_macro": 0.28,
+      "source": "historical (not re-evaluated)"
+    },
+    {
+      "name": "CNN 2D ameliore (proto_RAF)",
+      "accuracy": 0.53,
+      "f1_macro": 0.47,
+      "source": "historical (not re-evaluated)"
+    },
+    {
+      "name": "EfficientNet-B0 (proto_RAF)",
+      "accuracy": 0.6,
+      "f1_macro": 0.52,
+      "source": "historical (not re-evaluated)"
+    },
+    {
+      "name": "YAMNet + Dense Head (SilentCare)",
+      "accuracy": 0.7101063829787234,
+      "f1_macro": 0.6994385839946426,
+      "source": "evaluated (this study)"
+    }
+  ],
+  "video_progression": [
+    {
+      "name": "Baseline CNN (proto_RAF)",
+      "accuracy": 0.35,
+      "f1_macro": 0.28,
+      "source": "historical (not re-evaluated)"
+    },
+    {
+      "name": "CNN 2D ameliore (proto_RAF)",
+      "accuracy": 0.53,
+      "f1_macro": 0.47,
+      "source": "historical (not re-evaluated)"
+    },
+    {
+      "name": "EfficientNet-B0 (proto_RAF)",
+      "accuracy": 0.6,
+      "f1_macro": 0.52,
+      "source": "historical (not re-evaluated)"
+    },
+    {
+      "name": "ResNet50 Fine-tuned (SilentCare)",
+      "accuracy": 0.7623859191655802,
+      "f1_macro": 0.7656310599650207,
+      "source": "evaluated (this study)"
+    },
+    {
+      "name": "ViT HuggingFace (evaluated)",
+      "accuracy": 0.7229465449804433,
+      "f1_macro": 0.617240913431152,
+      "source": "evaluated (this study)"
+    }
+  ],
+  "inference_benchmark": {
+    "Audio (YAMNet Head)": 44.400115000000035,
+    "Video (ResNet50)": 38.20597599999994,
+    "Video (ViT HF)": 115.15416730769222
+  }
+}

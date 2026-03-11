@@ -1,0 +1,17 @@
+SilentCare Fusion - Classification Report
+============================================================
+Strategy: Adaptive weighted fusion (audio=0.35, video=0.65)
+Data: Synthetic intra-class pairing (random_state=42)
+Total paired samples: 376
+============================================================
+
+              precision    recall  f1-score   support
+
+    DISTRESS     0.8913    0.9111    0.9011       135
+       ANGRY     0.9494    0.9375    0.9434        80
+       ALERT     0.8810    0.9250    0.9024        80
+        CALM     0.8667    0.8025    0.8333        81
+
+    accuracy                         0.8963       376
+   macro avg     0.8971    0.8940    0.8951       376
+weighted avg     0.8961    0.8963    0.8958       376

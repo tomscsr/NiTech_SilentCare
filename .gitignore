@@ -1,0 +1,47 @@
+# Datasets and uploaded files (large, not redistributable)
+data/audio_dataset/
+data/feedback/
+data/offline/
+
+# Model weights (hosted on GitHub Releases)
+model/*.h5
+model/*.pth
+model/*.npy
+
+# Claude Code / MCP
+.claude/
+.mcp/
+CLAUDE.md
+*.mcp.json
+
+# Internship report artifacts
+scripts/generate_report.js
+scripts/node_modules/
+scripts/package.json
+scripts/package-lock.json
+*.docx
+*.pdf
+
+# Database
+silentcare.db
+*.db
+
+# Environment
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Training logs (large, not needed for inference)
+model/*_log*.txt

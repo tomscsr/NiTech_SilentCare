@@ -1,0 +1,17 @@
+SilentCare Video Model - Classification Report (Test Set)
+============================================================
+Model: ResNet50 (Video_SilentCare_model.pth)
+Dataset: RAF-DB test partition (mapped to 4 SilentCare classes)
+Total test samples: 3068
+============================================================
+
+              precision    recall  f1-score   support
+
+    DISTRESS     0.5820    0.8876    0.7030       712
+       ANGRY     0.6816    0.9383    0.7896       162
+       ALERT     0.6652    0.9483    0.7820       329
+        CALM     0.9636    0.6665    0.7880      1865
+
+    accuracy                         0.7624      3068
+   macro avg     0.7231    0.8602    0.7656      3068
+weighted avg     0.8281    0.7624    0.7677      3068

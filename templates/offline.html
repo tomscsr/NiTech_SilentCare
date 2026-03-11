@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SilentCare - Test Offline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/offline.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-mark"></div>
+            <h1 class="logo">SilentCare</h1>
+            <nav style="display:flex;gap:4px;margin-left:16px;">
+                <a href="/" class="nav-link">Live</a>
+                <a href="/offline" class="nav-link active">Offline</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <span id="status-badge" class="badge badge-inactive">Idle</span>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <!-- === TOP: Upload + Video Player === -->
+        <section class="grid-offline-top">
+            <div class="panel-upload-video">
+                <!-- Upload Zone -->
+                <div class="panel">
+                    <div id="upload-zone" class="upload-zone"
+                         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"
+                         ondrop="handleDrop(event)" onclick="document.getElementById('file-input').click()">
+                        <span class="upload-icon">&#128196;</span>
+                        <div class="upload-text">Drop a video file here or click to browse</div>
+                        <div class="upload-hint">MP4, AVI, MOV, MKV, WEBM (max 500 MB)</div>
+                        <input type="file" id="file-input" accept=".mp4,.avi,.mov,.mkv,.webm" style="display:none" onchange="handleFileSelect(event)">
+                        <div id="upload-progress" class="upload-progress">
+                            <div class="progress-track"><div id="upload-progress-fill" class="progress-fill"></div></div>
+                            <div id="upload-progress-text" class="progress-text">Uploading...</div>
+                        </div>
+                    </div>
+                    <!-- File info (shown after upload) -->
+                    <div id="file-info" class="file-info">
+                        <div class="file-meta">
+                            <div id="file-name" class="file-name">--</div>
+                            <div id="file-details" class="file-details">--</div>
+                        </div>
+                        <button class="file-remove" onclick="removeFile()">Remove</button>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="panel">
+                    <div class="controls-bar">
+                        <div class="mode-selector">
+                            <button id="mode-realtime" class="mode-btn active" onclick="setMode('realtime')">Realtime</button>
+                            <button id="mode-complete" class="mode-btn" onclick="setMode('complete')">Complete</button>
+                        </div>
+                        <div class="controls-spacer"></div>
+                        <button id="btn-analyze" class="btn btn-analyze" onclick="startAnalysis()" disabled>Analyze</button>
+                        <button id="btn-pause" class="btn btn-pause" onclick="pauseAnalysis()" disabled>Pause</button>
+                        <button id="btn-resume" class="btn btn-start" onclick="resumeAnalysis()" disabled style="display:none">Resume</button>
+                        <button id="btn-stop" class="btn btn-stop" onclick="stopAnalysis()" disabled>Stop</button>
+                    </div>
+                    <!-- Progress bar -->
+                    <div id="analysis-progress" class="analysis-progress" style="margin-top:12px">
+                        <div class="progress-track"><div id="analysis-fill" class="progress-fill"></div></div>
+                        <div class="analysis-status-row">
+                            <span id="analysis-status" class="analysis-status-text">--</span>
+                            <span id="analysis-percent" class="analysis-percent">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Player -->
+            <div class="panel">
+                <h2 class="panel-title">Video Preview</h2>
+                <div class="video-player-container">
+                    <video id="video-player" controls style="display:none"></video>
+                    <div id="video-placeholder" class="video-placeholder">Upload a video to preview</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- === ANALYSIS RESULTS (hidden until analysis starts) === -->
+        <section id="results-section" style="display:none">
+            <div class="grid-offline-analysis" style="margin-bottom:12px">
+                <!-- Left: Emotion hero -->
+                <div class="panel panel-emotion">
+                    <div id="emotion-display" class="emotion-display emotion-calm">
+                        <div class="emotion-glow"></div>
+                        <span class="emotion-icon" id="emotion-icon">--</span>
+                        <span class="emotion-label" id="emotion-label">Waiting...</span>
+                        <span class="emotion-confidence" id="emotion-confidence">--</span>
+                    </div>
+                    <div class="streak-info">
+                        Streak: <strong id="streak-count">0</strong> x <span id="streak-class">--</span>
+                    </div>
+                    <div class="stats-strip">
+                        <div class="stat-mini">
+                            <span class="stat-mini-val" id="stat-segments">0</span>
+                            <span class="stat-mini-lbl">Segments</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-mini-val" id="stat-alerts">0</span>
+                            <span class="stat-mini-lbl">Alerts</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-mini-val stat-mini-distress" id="stat-distress">0</span>
+                            <span class="stat-mini-lbl">Distress</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-mini-val stat-mini-angry" id="stat-angry">0</span>
+                            <span class="stat-mini-lbl">Angry</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Probability bars -->
+                <div class="panel panel-probs">
+                    <h2 class="panel-title">Class Probabilities</h2>
+                    <div class="probs-columns">
+                        <!-- Audio -->
+                        <div class="probs-col">
+                            <div class="probs-col-header">
+                                <span class="probs-col-title">Audio</span>
+                            </div>
+                            <div class="prob-bars">
+                                <div class="prob-row"><span class="prob-lbl distress-c">DIS</span><div class="prob-track"><div id="bar-audio-distress" class="prob-fill distress-fill" style="width:0%"></div></div><span class="prob-val" id="val-audio-distress">--</span></div>
+                                <div class="prob-row"><span class="prob-lbl angry-c">ANG</span><div class="prob-track"><div id="bar-audio-angry" class="prob-fill angry-fill" style="width:0%"></div></div><span class="prob-val" id="val-audio-angry">--</span></div>
+                                <div class="prob-row"><span class="prob-lbl alert-c">ALR</span><div class="prob-track"><div id="bar-audio-alert" class="prob-fill alert-fill" style="width:0%"></div></div><span class="prob-val" id="val-audio-alert">--</span></div>
+                                <div class="prob-row"><span class="prob-lbl calm-c">CLM</span><div class="prob-track"><div id="bar-audio-calm" class="prob-fill calm-fill" style="width:0%"></div></div><span class="prob-val" id="val-audio-calm">--</span></div>
+                            </div>
+                        </div>
+                        <!-- Video -->
+                        <div class="probs-col">
+                            <div class="probs-col-header">
+                                <span class="probs-col-title">Video</span>
+                            </div>
+                            <div class="prob-bars">
+                                <div class="prob-row"><span class="prob-lbl distress-c">DIS</span><div class="prob-track"><div id="bar-video-distress" class="prob-fill distress-fill" style="width:0%"></div></div><span class="prob-val" id="val-video-distress">--</span></div>
+                                <div class="prob-row"><span class="prob-lbl angry-c">ANG</span><div class="prob-track"><div id="bar-video-angry" class="prob-fill angry-fill" style="width:0%"></div></div><span class="prob-val" id="val-video-angry">--</span></div>
+                                <div class="prob-row"><span class="prob-lbl alert-c">ALR</span><div class="prob-track"><div id="bar-video-alert" class="prob-fill alert-fill" style="width:0%"></div></div><span class="prob-val" id="val-video-alert">--</span></div>
+                                <div class="prob-row"><span class="prob-lbl calm-c">CLM</span><div class="prob-track"><div id="bar-video-calm" class="prob-fill calm-fill" style="width:0%"></div></div><span class="prob-val" id="val-video-calm">--</span></div>
+                            </div>
+                        </div>
+                        <!-- Fused -->
+                        <div class="probs-col probs-col-fused">
+                            <div class="probs-col-header">
+                                <span class="probs-col-title">Fused</span>
+                            </div>
+                            <div class="prob-bars">
+                                <div class="prob-row"><span class="prob-lbl distress-c">DIS</span><div class="prob-track"><div id="bar-distress" class="prob-fill distress-fill" style="width:0%"></div></div><span class="prob-val" id="val-distress">0%</span></div>
+                                <div class="prob-row"><span class="prob-lbl angry-c">ANG</span><div class="prob-track"><div id="bar-angry" class="prob-fill angry-fill" style="width:0%"></div></div><span class="prob-val" id="val-angry">0%</span></div>
+                                <div class="prob-row"><span class="prob-lbl alert-c">ALR</span><div class="prob-track"><div id="bar-alert" class="prob-fill alert-fill" style="width:0%"></div></div><span class="prob-val" id="val-alert">0%</span></div>
+                                <div class="prob-row"><span class="prob-lbl calm-c">CLM</span><div class="prob-track"><div id="bar-calm" class="prob-fill calm-fill" style="width:0%"></div></div><span class="prob-val" id="val-calm">0%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="panel panel-chart" style="margin-bottom:12px">
+                <h2 class="panel-title">Emotion Timeline</h2>
+                <canvas id="history-chart"></canvas>
+            </div>
+
+            <!-- Alerts + Segments -->
+            <div class="grid-bottom" style="margin-bottom:12px">
+                <div class="panel panel-alerts">
+                    <h2 class="panel-title">Alerts <span id="alert-count" class="unack-badge" style="display:none">0</span></h2>
+                    <div id="alert-feed" class="alert-feed">
+                        <div class="alert-empty">No alerts yet.</div>
+                    </div>
+                </div>
+                <div class="panel panel-segments">
+                    <h2 class="panel-title">Segments</h2>
+                    <div id="segment-list" class="segment-list">
+                        <div class="segment-empty">No segments yet.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export -->
+            <div class="panel">
+                <div class="export-row">
+                    <button class="btn btn-sm btn-ghost" onclick="exportResultsCSV()">Export CSV</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/offline.js"></script>
+</body>
+</html>
