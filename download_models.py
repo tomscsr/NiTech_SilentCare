@@ -4,9 +4,9 @@ import urllib.request
 import os
 
 MODELS = {
-    "model/Audio_SilentCare_model.h5": "PLACEHOLDER_URL_AUDIO",
-    "model/audio_silentcare_classes.npy": "PLACEHOLDER_URL_CLASSES",
-    "model/Video_SilentCare_model.pth": "PLACEHOLDER_URL_VIDEO",
+    "model/Audio_SilentCare_model.h5": "https://github.com/tomscsr/NiTech_SilentCare/releases/download/v1.0.0/Audio_SilentCare_model.h5",
+    "model/audio_silentcare_classes.npy": "https://github.com/tomscsr/NiTech_SilentCare/releases/download/v1.0.0/audio_silentcare_classes.npy",
+    "model/Video_SilentCare_model.pth": "https://github.com/tomscsr/NiTech_SilentCare/releases/download/v1.0.0/Video_SilentCare_model.pth",
 }
 
 os.makedirs("model", exist_ok=True)
