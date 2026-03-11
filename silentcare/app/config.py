@@ -26,6 +26,14 @@ VIDEO_MIN_CONFIDENCE = 0.45  # Below this, video weight is reduced (domain shift
 AUDIO_MIN_RMS = 0.01         # Below this RMS, audio is silence -> skip audio analysis
 
 # ============================================
+# Audio preprocessing
+# ============================================
+AUDIO_NOISE_REDUCTION = True        # Enable/disable spectral noise reduction
+AUDIO_VAD_ENABLED = True            # Enable/disable Voice Activity Detection
+AUDIO_VAD_VOICE_THRESHOLD = 0.15    # Minimum voiced frame ratio to consider segment as voice
+AUDIO_NOISE_PROP_DECREASE = 0.75    # Aggressiveness of noise reduction (0.0-1.0)
+
+# ============================================
 # Alert thresholds
 # ============================================
 THRESHOLD_DISTRESS = 0.60

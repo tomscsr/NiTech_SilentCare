@@ -119,7 +119,7 @@ SilentCare/
 |   |-- prepare_audio_dataset.py    # Audio dataset preparation
 |   |-- finetune_from_feedback.py   # Fine-tuning from human feedback
 |
-|-- tests/                          # Test suite (117 tests)
+|-- tests/                          # Test suite (132 tests)
 |
 |-- data/                           # Datasets (not included in repo)
 |   |-- audio_dataset/              # 1876 audio files (4 classes)
@@ -156,6 +156,7 @@ pip install -r requirements.txt
 | opencv-python    | Video capture + face detection                 |
 | sounddevice      | Real-time audio capture                        |
 | librosa          | Audio processing (resampling)                  |
+| noisereduce      | Audio noise reduction (spectral gating)         |
 | flask            | Web server + API                               |
 | numpy            | Numerical computation                          |
 | chart.js (CDN)   | Real-time charts (dashboard)                   |
@@ -224,6 +225,18 @@ SilentCare - Emotional Monitoring System
 **Output**: probabilities over 4 classes [DISTRESS, ANGRY, ALERT, CALM]
 
 **Silence gate**: if audio RMS < 0.01, the segment is ignored (the model is trained on vocal expressions, not silence).
+
+### Audio Preprocessing (AudioPreprocessor)
+
+**File**: `silentcare/ml/audio_preprocessor.py`
+
+Before the waveform reaches YAMNet, a preprocessing stage handles three tasks:
+
+1. **Noise reduction**: spectral gating via `noisereduce` (prop_decrease=0.75) using the first 0.5s of each segment as the noise profile. Reduces stationary environmental noise (traffic, HVAC, background music) without degrading vocal quality.
+2. **Voice Activity Detection (VAD)**: energy-based frame analysis (20ms frames, dynamic RMS threshold). If fewer than 15% of frames are voiced, the segment is flagged as non-voice and audio inference is skipped, preventing environmental sounds (sirens, alarms) from being misclassified as emotional vocalisations.
+3. **Normalisation**: peak normalisation to 0.95 to ensure consistent input amplitude across different microphones and environments.
+
+All three steps are individually configurable via `config.py` (`AUDIO_NOISE_REDUCTION`, `AUDIO_VAD_ENABLED`).
 
 ### Video Model: ResNet50
 
@@ -525,7 +538,7 @@ cd SilentCare
 python -m pytest tests/ -v
 ```
 
-### Test Suite (117 tests)
+### Test Suite (132 tests)
 
 | File                | Tests | Description                                        |
 |---------------------|-------|----------------------------------------------------|
@@ -535,7 +548,8 @@ python -m pytest tests/ -v
 | test_stability.py   | 4     | Stability: 300 segments, memory, concurrent writes |
 | test_feedback.py    | 34    | Feedback: DB CRUD, buffer, service, WAV, API       |
 | test_offline.py     | 33    | Offline: extraction, pipeline, API endpoints       |
-| **Total**           |**117**| **All passing**                                    |
+| test_audio_preprocessor.py | 15 | Preprocessor: noise reduction, VAD, normalisation |
+| **Total**           |**132**| **All passing**                                    |
 
 ---
 
