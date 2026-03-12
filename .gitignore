@@ -1,34 +1,35 @@
-# Datasets and uploaded files (large, not redistributable)
-data/audio_dataset/
-data/feedback/
-data/offline/
-data/FER2013/
-data/image/
-data/unified_benchmark/
+# Datasets - never commit (large, not redistributable)
+data/
+*.wav
+*.mp4
 
+# Report and generated documents - never commit
+*.docx
+*.pdf
+SilentCare_Internship_Report*
 
-# Claude Code / MCP
-.claude/
-.mcp/
-CLAUDE.md
-*.mcp.json
-
-# Internship report artifacts
+# Report generation scripts - never commit
+scripts/update_report_benchmark.py
+scripts/update_report*.py
 scripts/generate_report.js
 scripts/node_modules/
 scripts/package.json
 scripts/package-lock.json
-*.docx
-*.pdf
 
-# Database
+# Claude/MCP tooling - never commit
+.claude/
+.mcp/
+CLAUDE.md
+*.mcp.json
+mcp.json
+
+# Database and environment
 silentcare.db
 *.db
-
-# Environment
 .env
+*.env
 
-# Python
+# Python artifacts
 __pycache__/
 *.pyc
 *.pyo
@@ -51,3 +52,4 @@ results/*_predictions.npy
 
 # Diagnostic outputs
 diagnostic/
+diagnostic_*/
