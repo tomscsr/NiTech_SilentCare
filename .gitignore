@@ -4,6 +4,7 @@ data/feedback/
 data/offline/
 data/FER2013/
 data/image/
+data/unified_benchmark/
 
 
 # Claude Code / MCP
@@ -41,8 +42,9 @@ build/
 .DS_Store
 Thumbs.db
 
-# Training logs (large, not needed for inference)
+# Training logs and histories (large, not needed for inference)
 model/*_log*.txt
+model/*_training_history.json
 
 # Evaluation intermediate files
 results/*_predictions.npy

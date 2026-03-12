@@ -1,8 +1,10 @@
 """
 SilentCare - Video Model Training Script
 ==========================================
-ResNet50 (pretrained ImageNet, PyTorch) + classification head + LSTM temporal
+Backbone (pretrained ImageNet, PyTorch) + classification head + LSTM temporal
 Fine-tuned on RAF-DB remapped to 4 classes: DISTRESS, ANGRY, ALERT, CALM
+
+Supported backbones: resnet50, efficientnet_b2, mobilenet_v3
 
 Step 1: Train static backbone on RAF-DB (frame-level)
 Step 2: Build temporal LSTM head for sequence-level prediction
@@ -17,13 +19,21 @@ RAF-DB label mapping (1-indexed):
   7=Neutral  -> CALM
 
 Output:
-  model/Video_SilentCare_model.pth (static backbone + head)
-  model/Video_SilentCare_temporal.pth (LSTM temporal head)
+  model/Video_SilentCare_model.pth        (ResNet50)
+  model/EfficientNet_B2_SilentCare.pth    (EfficientNet-B2)
+  model/MobileNetV3_SilentCare.pth        (MobileNetV3-Large)
+  model/Video_SilentCare_temporal.pth     (LSTM temporal head)
+
+Usage:
+  python silentcare/training/train_video.py --backbone resnet50
+  python silentcare/training/train_video.py --backbone efficientnet_b2
+  python silentcare/training/train_video.py --backbone mobilenet_v3
 """
 
 import os
 import sys
 import json
+import argparse
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -80,8 +90,26 @@ PROJECT_DIR = SCRIPT_DIR.parent.parent
 RAFDB_IMAGE_DIR = PROJECT_DIR.parent / "data" / "image" / "RAF-DB" / "aligned"
 RAFDB_LABEL_FILE = PROJECT_DIR.parent / "data" / "image" / "EmoLabel" / "list_patition_label.txt"
 MODEL_DIR = PROJECT_DIR / "model"
-MODEL_PATH = MODEL_DIR / "Video_SilentCare_model.pth"
 TEMPORAL_MODEL_PATH = MODEL_DIR / "Video_SilentCare_temporal.pth"
+
+# Backbone configurations: feature_dim_raw is the output of the backbone before projection
+BACKBONE_CONFIGS = {
+    "resnet50": {
+        "display_name": "ResNet50",
+        "feature_dim_raw": 2048,
+        "model_filename": "Video_SilentCare_model.pth",
+    },
+    "efficientnet_b2": {
+        "display_name": "EfficientNet-B2",
+        "feature_dim_raw": 1408,
+        "model_filename": "EfficientNet_B2_SilentCare.pth",
+    },
+    "mobilenet_v3": {
+        "display_name": "MobileNetV3-Large",
+        "feature_dim_raw": 960,
+        "model_filename": "MobileNetV3_SilentCare.pth",
+    },
+}
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -165,22 +193,42 @@ def load_rafdb_data():
 # ============================================
 class SilentCareVideoModel(nn.Module):
     """
-    ResNet50 backbone + classification head for FER.
+    Backbone + classification head for FER.
+    Supports: resnet50, efficientnet_b2, mobilenet_v3.
     Also provides feature extraction for temporal LSTM.
     """
 
-    def __init__(self, num_classes=NUM_CLASSES, feature_dim=FEATURE_DIM, freeze_backbone=False):
+    def __init__(self, backbone_name="resnet50", num_classes=NUM_CLASSES,
+                 feature_dim=FEATURE_DIM, freeze_backbone=False):
         super().__init__()
+        self.backbone_name = backbone_name
 
-        # Load pretrained ResNet50
-        backbone = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+        if backbone_name not in BACKBONE_CONFIGS:
+            raise ValueError(f"Unknown backbone: {backbone_name}. "
+                             f"Choose from: {list(BACKBONE_CONFIGS.keys())}")
 
-        # Remove the final FC layer, keep everything up to avgpool
-        self.features = nn.Sequential(*list(backbone.children())[:-1])  # output: (batch, 2048, 1, 1)
+        raw_dim = BACKBONE_CONFIGS[backbone_name]["feature_dim_raw"]
+
+        if backbone_name == "resnet50":
+            backbone = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+            # Remove the final FC layer, keep everything up to avgpool
+            self.features = nn.Sequential(*list(backbone.children())[:-1])
+        elif backbone_name == "efficientnet_b2":
+            backbone = models.efficientnet_b2(weights=models.EfficientNet_B2_Weights.IMAGENET1K_V1)
+            self.features = nn.Sequential(
+                backbone.features,
+                nn.AdaptiveAvgPool2d(1),
+            )
+        elif backbone_name == "mobilenet_v3":
+            backbone = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V2)
+            self.features = nn.Sequential(
+                backbone.features,
+                nn.AdaptiveAvgPool2d(1),
+            )
 
         # Projection to feature_dim
         self.projection = nn.Sequential(
-            nn.Linear(2048, feature_dim),
+            nn.Linear(raw_dim, feature_dim),
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
         )
@@ -342,11 +390,15 @@ def validate(model, dataloader, criterion, device):
     return epoch_loss, epoch_acc, np.array(all_preds), np.array(all_labels)
 
 
-def train_static_model():
+def train_static_model(backbone_name="resnet50"):
     """Train the static (frame-level) FER model on RAF-DB."""
+    config = BACKBONE_CONFIGS[backbone_name]
+    display_name = config["display_name"]
+    model_path = MODEL_DIR / config["model_filename"]
+
     print("=" * 60)
     print("SilentCare - Video Model Training (Static)")
-    print("ResNet50 + Classification Head on RAF-DB")
+    print(f"{display_name} + Classification Head on RAF-DB")
     print(f"Device: {DEVICE}")
     print("=" * 60)
 
@@ -393,6 +445,7 @@ def train_static_model():
 
     # Model
     model = SilentCareVideoModel(
+        backbone_name=backbone_name,
         num_classes=NUM_CLASSES,
         feature_dim=FEATURE_DIM,
         freeze_backbone=False,
@@ -451,8 +504,8 @@ def train_static_model():
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             patience_counter = 0
-            torch.save(model.state_dict(), str(MODEL_PATH))
-            print(f"  -> Saved best model (val_loss: {val_loss:.4f})")
+            torch.save(model.state_dict(), str(model_path))
+            print(f"  -> Saved best model to {model_path.name} (val_loss: {val_loss:.4f})")
         else:
             patience_counter += 1
             if patience_counter >= PATIENCE:
@@ -460,7 +513,7 @@ def train_static_model():
                 break
 
     # Load best model for evaluation
-    model.load_state_dict(torch.load(str(MODEL_PATH), map_location=DEVICE, weights_only=True))
+    model.load_state_dict(torch.load(str(model_path), map_location=DEVICE, weights_only=True))
 
     # Evaluate on test set
     print("\n" + "=" * 60)
@@ -493,9 +546,10 @@ def train_static_model():
     print(f"F1 weighted: {f1_weighted:.4f}")
 
     # Save training history
-    history_path = MODEL_DIR / "video_training_history.json"
+    history_path = MODEL_DIR / f"{backbone_name}_training_history.json"
     with open(history_path, "w") as f:
         json.dump(history, f, indent=2)
+    print(f"\nSaved training history to {history_path}")
 
     # Save temporal LSTM head (untrained, architecture only)
     temporal_model = TemporalLSTMHead(
@@ -522,9 +576,16 @@ def train_static_model():
 
 
 if __name__ == "__main__":
-    results = train_static_model()
+    parser = argparse.ArgumentParser(description="SilentCare Video Model Training")
+    parser.add_argument("--backbone", choices=list(BACKBONE_CONFIGS.keys()),
+                        default="resnet50",
+                        help="Backbone architecture (default: resnet50)")
+    args = parser.parse_args()
+
+    results = train_static_model(backbone_name=args.backbone)
     if results:
         print("\n=== SUMMARY ===")
+        print(f"Backbone: {BACKBONE_CONFIGS[args.backbone]['display_name']}")
         print(f"Test Accuracy: {results['test_accuracy']:.4f}")
         print(f"F1 Macro: {results['f1_macro']:.4f}")
         for cls, f1 in results["f1_per_class"].items():

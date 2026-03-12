@@ -1,0 +1,431 @@
+{
+  "benchmark_info": {
+    "total_images": 9204,
+    "sources": [
+      "AffectNet",
+      "FER-2013",
+      "RAF-DB"
+    ],
+    "classes": [
+      "DISTRESS",
+      "ANGRY",
+      "ALERT",
+      "CALM"
+    ],
+    "per_class_count": {
+      "DISTRESS": 2136,
+      "ANGRY": 486,
+      "ALERT": 987,
+      "CALM": 5595
+    },
+    "per_source_count": {
+      "AffectNet": 3068,
+      "RAF-DB": 3068,
+      "FER-2013": 3068
+    }
+  },
+  "models": {
+    "resnet50": {
+      "display_name": "ResNet50",
+      "training_domain": "RAF-DB",
+      "accuracy": 0.4919,
+      "f1_macro": 0.4598,
+      "f1_weighted": 0.5053,
+      "avg_inference_ms": 111.2,
+      "p50_inference_ms": 107.9,
+      "p95_inference_ms": 185.4,
+      "per_class": {
+        "DISTRESS": {
+          "precision": 0.3882,
+          "recall": 0.6025,
+          "f1": 0.4722,
+          "support": 2136
+        },
+        "ANGRY": {
+          "precision": 0.2349,
+          "recall": 0.5617,
+          "f1": 0.3313,
+          "support": 486
+        },
+        "ALERT": {
+          "precision": 0.3628,
+          "recall": 0.8146,
+          "f1": 0.502,
+          "support": 987
+        },
+        "CALM": {
+          "precision": 0.8614,
+          "recall": 0.3866,
+          "f1": 0.5337,
+          "support": 5595
+        }
+      },
+      "per_source": {
+        "AffectNet": {
+          "accuracy": 0.25,
+          "f1_macro": 0.2552,
+          "num_samples": 3068
+        },
+        "FER-2013": {
+          "accuracy": 0.484,
+          "f1_macro": 0.4213,
+          "num_samples": 3068
+        },
+        "RAF-DB": {
+          "accuracy": 0.7415,
+          "f1_macro": 0.7377,
+          "num_samples": 3068
+        }
+      },
+      "per_source_per_class": {
+        "AffectNet": {
+          "DISTRESS": 0.332,
+          "ANGRY": 0.171,
+          "ALERT": 0.3843,
+          "CALM": 0.1337
+        },
+        "FER-2013": {
+          "DISTRESS": 0.4054,
+          "ANGRY": 0.2601,
+          "ALERT": 0.4463,
+          "CALM": 0.5735
+        },
+        "RAF-DB": {
+          "DISTRESS": 0.6862,
+          "ANGRY": 0.7361,
+          "ALERT": 0.7587,
+          "CALM": 0.7699
+        }
+      }
+    },
+    "efficientnet_b2": {
+      "display_name": "EfficientNet-B2",
+      "training_domain": "RAF-DB",
+      "accuracy": 0.4537,
+      "f1_macro": 0.4294,
+      "f1_weighted": 0.4565,
+      "avg_inference_ms": 77.2,
+      "p50_inference_ms": 67.9,
+      "p95_inference_ms": 134.6,
+      "per_class": {
+        "DISTRESS": {
+          "precision": 0.3915,
+          "recall": 0.6362,
+          "f1": 0.4848,
+          "support": 2136
+        },
+        "ANGRY": {
+          "precision": 0.219,
+          "recall": 0.535,
+          "f1": 0.3108,
+          "support": 486
+        },
+        "ALERT": {
+          "precision": 0.3183,
+          "recall": 0.8632,
+          "f1": 0.4651,
+          "support": 987
+        },
+        "CALM": {
+          "precision": 0.9123,
+          "recall": 0.3047,
+          "f1": 0.4569,
+          "support": 5595
+        }
+      },
+      "per_source": {
+        "AffectNet": {
+          "accuracy": 0.2679,
+          "f1_macro": 0.264,
+          "num_samples": 3068
+        },
+        "FER-2013": {
+          "accuracy": 0.3621,
+          "f1_macro": 0.341,
+          "num_samples": 3068
+        },
+        "RAF-DB": {
+          "accuracy": 0.7311,
+          "f1_macro": 0.7244,
+          "num_samples": 3068
+        }
+      },
+      "per_source_per_class": {
+        "AffectNet": {
+          "DISTRESS": 0.3607,
+          "ANGRY": 0.1525,
+          "ALERT": 0.3506,
+          "CALM": 0.1923
+        },
+        "FER-2013": {
+          "DISTRESS": 0.4013,
+          "ANGRY": 0.2323,
+          "ALERT": 0.4217,
+          "CALM": 0.3087
+        },
+        "RAF-DB": {
+          "DISTRESS": 0.6957,
+          "ANGRY": 0.7229,
+          "ALERT": 0.7235,
+          "CALM": 0.7554
+        }
+      }
+    },
+    "mobilenet_v3": {
+      "display_name": "MobileNetV3",
+      "training_domain": "RAF-DB",
+      "accuracy": 0.4191,
+      "f1_macro": 0.4083,
+      "f1_weighted": 0.4203,
+      "avg_inference_ms": 51.8,
+      "p50_inference_ms": 46.2,
+      "p95_inference_ms": 96.7,
+      "per_class": {
+        "DISTRESS": {
+          "precision": 0.3922,
+          "recall": 0.5852,
+          "f1": 0.4697,
+          "support": 2136
+        },
+        "ANGRY": {
+          "precision": 0.2862,
+          "recall": 0.5041,
+          "f1": 0.3651,
+          "support": 486
+        },
+        "ALERT": {
+          "precision": 0.2479,
+          "recall": 0.8713,
+          "f1": 0.386,
+          "support": 987
+        },
+        "CALM": {
+          "precision": 0.8877,
+          "recall": 0.2685,
+          "f1": 0.4122,
+          "support": 5595
+        }
+      },
+      "per_source": {
+        "AffectNet": {
+          "accuracy": 0.2161,
+          "f1_macro": 0.2269,
+          "num_samples": 3068
+        },
+        "FER-2013": {
+          "accuracy": 0.3973,
+          "f1_macro": 0.3721,
+          "num_samples": 3068
+        },
+        "RAF-DB": {
+          "accuracy": 0.6437,
+          "f1_macro": 0.6276,
+          "num_samples": 3068
+        }
+      },
+      "per_source_per_class": {
+        "AffectNet": {
+          "DISTRESS": 0.4093,
+          "ANGRY": 0.2168,
+          "ALERT": 0.2413,
+          "CALM": 0.0402
+        },
+        "FER-2013": {
+          "DISTRESS": 0.3816,
+          "ANGRY": 0.2486,
+          "ALERT": 0.4542,
+          "CALM": 0.4041
+        },
+        "RAF-DB": {
+          "DISTRESS": 0.624,
+          "ANGRY": 0.572,
+          "ALERT": 0.6462,
+          "CALM": 0.668
+        }
+      }
+    },
+    "vit_trpakov": {
+      "display_name": "ViT trpakov",
+      "training_domain": "FER-2013",
+      "accuracy": 0.7238,
+      "f1_macro": 0.61,
+      "f1_weighted": 0.7289,
+      "avg_inference_ms": 312.8,
+      "p50_inference_ms": 302.1,
+      "p95_inference_ms": 448.3,
+      "per_class": {
+        "DISTRESS": {
+          "precision": 0.5779,
+          "recall": 0.5679,
+          "f1": 0.5728,
+          "support": 2136
+        },
+        "ANGRY": {
+          "precision": 0.3189,
+          "recall": 0.6235,
+          "f1": 0.422,
+          "support": 486
+        },
+        "ALERT": {
+          "precision": 0.805,
+          "recall": 0.4894,
+          "f1": 0.6087,
+          "support": 987
+        },
+        "CALM": {
+          "precision": 0.8394,
+          "recall": 0.8334,
+          "f1": 0.8364,
+          "support": 5595
+        }
+      },
+      "per_source": {
+        "AffectNet": {
+          "accuracy": 0.6398,
+          "f1_macro": 0.4461,
+          "num_samples": 3068
+        },
+        "FER-2013": {
+          "accuracy": 0.8087,
+          "f1_macro": 0.737,
+          "num_samples": 3068
+        },
+        "RAF-DB": {
+          "accuracy": 0.7229,
+          "f1_macro": 0.6172,
+          "num_samples": 3068
+        }
+      },
+      "per_source_per_class": {
+        "AffectNet": {
+          "DISTRESS": 0.3613,
+          "ANGRY": 0.2684,
+          "ALERT": 0.357,
+          "CALM": 0.7975
+        },
+        "FER-2013": {
+          "DISTRESS": 0.6925,
+          "ANGRY": 0.5383,
+          "ALERT": 0.8338,
+          "CALM": 0.8835
+        },
+        "RAF-DB": {
+          "DISTRESS": 0.6065,
+          "ANGRY": 0.49,
+          "ALERT": 0.5391,
+          "CALM": 0.8333
+        }
+      }
+    },
+    "vit_dima806": {
+      "display_name": "ViT dima806",
+      "training_domain": "FER+ (in21k)",
+      "accuracy": 0.7444,
+      "f1_macro": 0.6527,
+      "f1_weighted": 0.7505,
+      "avg_inference_ms": 278.2,
+      "p50_inference_ms": 283.6,
+      "p95_inference_ms": 441.5,
+      "per_class": {
+        "DISTRESS": {
+          "precision": 0.5659,
+          "recall": 0.6554,
+          "f1": 0.6074,
+          "support": 2136
+        },
+        "ANGRY": {
+          "precision": 0.4153,
+          "recall": 0.6811,
+          "f1": 0.516,
+          "support": 486
+        },
+        "ALERT": {
+          "precision": 0.8172,
+          "recall": 0.5299,
+          "f1": 0.6429,
+          "support": 987
+        },
+        "CALM": {
+          "precision": 0.8685,
+          "recall": 0.8216,
+          "f1": 0.8444,
+          "support": 5595
+        }
+      },
+      "per_source": {
+        "AffectNet": {
+          "accuracy": 0.6196,
+          "f1_macro": 0.4587,
+          "num_samples": 3068
+        },
+        "FER-2013": {
+          "accuracy": 0.9241,
+          "f1_macro": 0.8955,
+          "num_samples": 3068
+        },
+        "RAF-DB": {
+          "accuracy": 0.6894,
+          "f1_macro": 0.5922,
+          "num_samples": 3068
+        }
+      },
+      "per_source_per_class": {
+        "AffectNet": {
+          "DISTRESS": 0.3435,
+          "ANGRY": 0.3237,
+          "ALERT": 0.3878,
+          "CALM": 0.78
+        },
+        "FER-2013": {
+          "DISTRESS": 0.8775,
+          "ANGRY": 0.8262,
+          "ALERT": 0.9263,
+          "CALM": 0.952
+        },
+        "RAF-DB": {
+          "DISTRESS": 0.5782,
+          "ANGRY": 0.48,
+          "ALERT": 0.5085,
+          "CALM": 0.8021
+        }
+      }
+    }
+  },
+  "ranking": [
+    {
+      "model": "vit_dima806",
+      "display_name": "ViT dima806",
+      "accuracy": 0.7444,
+      "f1_macro": 0.6527,
+      "rank": 1
+    },
+    {
+      "model": "vit_trpakov",
+      "display_name": "ViT trpakov",
+      "accuracy": 0.7238,
+      "f1_macro": 0.61,
+      "rank": 2
+    },
+    {
+      "model": "resnet50",
+      "display_name": "ResNet50",
+      "accuracy": 0.4919,
+      "f1_macro": 0.4598,
+      "rank": 3
+    },
+    {
+      "model": "efficientnet_b2",
+      "display_name": "EfficientNet-B2",
+      "accuracy": 0.4537,
+      "f1_macro": 0.4294,
+      "rank": 4
+    },
+    {
+      "model": "mobilenet_v3",
+      "display_name": "MobileNetV3",
+      "accuracy": 0.4191,
+      "f1_macro": 0.4083,
+      "rank": 5
+    }
+  ]
+}

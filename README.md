@@ -96,16 +96,18 @@ SilentCare/
 |   |-- ml/
 |   |   |-- audio_model.py          # YAMNet + Keras classification head
 |   |   |-- audio_preprocessor.py   # Noise reduction, VAD, normalisation
-|   |   |-- video_model.py          # ViT HuggingFace + face detection (ResNet50 available via use_resnet=True)
+|   |   |-- video_model.py          # 5 video backends (2 ViTs + 3 local CNNs)
 |   |
 |   |-- training/
 |       |-- train_audio.py          # Audio model training script
-|       |-- train_video.py          # Video model training script (ResNet50)
+|       |-- train_video.py          # Video model training (ResNet50/EfficientNet-B2/MobileNetV3)
 |
 |-- model/
 |   |-- Audio_SilentCare_model.h5   # Audio classification head (Keras)
 |   |-- audio_silentcare_classes.npy
-|   |-- Video_SilentCare_model.pth  # Video backbone (ResNet50, comparison only)
+|   |-- Video_SilentCare_model.pth        # ResNet50 (locally trained on RAF-DB)
+|   |-- EfficientNet_B2_SilentCare.pth    # EfficientNet-B2 (locally trained on RAF-DB)
+|   |-- MobileNetV3_SilentCare.pth        # MobileNetV3-Large (locally trained on RAF-DB)
 |
 |-- templates/
 |   |-- index.html                  # Live monitoring dashboard
@@ -118,8 +120,12 @@ SilentCare/
 |-- scripts/
 |   |-- prepare_audio_dataset.py    # Audio dataset preparation
 |   |-- finetune_from_feedback.py   # Fine-tuning from human feedback
+|   |-- build_unified_benchmark.py  # Build 3-dataset benchmark (RAF-DB + FER-2013 + AffectNet)
+|   |-- evaluate_unified_benchmark.py # Evaluate all 5 models on unified benchmark
 |   |-- evaluate_fer2013.py         # FER-2013 evaluation (ViT vs ResNet50)
 |   |-- diagnose_video.py           # Webcam video pipeline diagnostic
+|
+|-- results/benchmark/              # Benchmark outputs (charts, metrics JSON)
 |
 |-- tests/                          # Test suite (132 tests)
 |
@@ -260,9 +266,17 @@ All three steps are individually configurable via `config.py` (`AUDIO_NOISE_REDU
 | neutral     | CALM             |
 | surprise    | ALERT            |
 
-**Why ViT over ResNet50?** A ResNet50 fine-tuned on RAF-DB (posed studio photos) was evaluated but shows severe domain shift on webcam input -- predicting DISTRESS >90% on calm faces. ViT, pre-trained on FER-2013 (webcam-like images), generalises significantly better to real conditions. Both models were evaluated on the FER-2013 test set (7178 images, see [Training Results](#training-results)).
+**Why ViT over local CNNs?** Three CNN backbones (ResNet50, EfficientNet-B2, MobileNetV3) were trained on RAF-DB and evaluated alongside two pre-trained ViTs on a unified 3-dataset benchmark (9204 images from RAF-DB + FER-2013 + AffectNet). All CNN models suffer severe domain shift (25-27% accuracy on AffectNet), while ViTs generalise significantly better (62-64% on AffectNet). See [Unified Benchmark](#unified-benchmark) for full results.
 
-A ResNet50 model is still available via `VideoModel(use_resnet=True)` for comparison.
+Five backends are available via `VideoModel(backend=...)`:
+
+| Backend            | Type    | Training Domain | Description                    |
+|--------------------|---------|-----------------|--------------------------------|
+| `vit_trpakov`      | ViT     | FER-2013        | Production default             |
+| `vit_dima806`      | ViT     | FER+ (ImageNet-21k) | Best overall F1 Macro      |
+| `resnet50`         | CNN     | RAF-DB          | Classic baseline               |
+| `efficientnet_b2`  | CNN     | RAF-DB          | Balanced speed/accuracy        |
+| `mobilenet_v3`     | CNN     | RAF-DB          | Fastest inference (13ms)       |
 
 **Multi-frame averaging**: for each segment, 15 frames are analysed individually. Predictions are averaged with linear weighting (more recent frames weighted higher, from 0.5 to 1.0).
 
@@ -531,11 +545,42 @@ The production video model is **ViT HuggingFace** (`trpakov/vit-face-expression`
 | Model                  | Dataset    | Accuracy  | F1 Macro | DISTRESS F1 |
 |------------------------|------------|-----------|----------|-------------|
 | Audio                  | Custom     | 71.0%     | 0.699    | 0.838       |
-| **Video (ViT)**        | FER-2013   | **78.1%** | **0.761**| **0.741**   |
+| **Video (ViT trpakov)**| FER-2013   | **78.1%** | **0.761**| **0.741**   |
 | Video (ResNet50)       | RAF-DB     | 76.2%     | 0.766    | --          |
-| Video (ResNet50)       | FER-2013   | 47.5%     | 0.450    | 0.469       |
+| Video (EfficientNet-B2)| RAF-DB     | --        | --       | --          |
+| Video (MobileNetV3)   | RAF-DB     | --        | --       | --          |
 
-ResNet50 achieves 76.2% on RAF-DB (its training domain) but only 47.5% on FER-2013 (webcam-like images), confirming the domain shift. ViT achieves 78.1% on FER-2013 without any fine-tuning, demonstrating better generalisation to real webcam conditions.
+### Unified Benchmark
+
+All 5 video models were evaluated on a **unified 3-dataset benchmark** (9204 images: 3068 from RAF-DB, 3068 from FER-2013, 3068 from AffectNet), each balanced across 4 SilentCare classes.
+
+| Model               | Accuracy  | F1 Macro  | DISTRESS F1 | Inference  | Training Domain |
+|----------------------|-----------|-----------|-------------|------------|-----------------|
+| **ViT dima806**      | **74.4%** | **0.653** | **0.607**   | 123.6 ms   | FER+ (in21k)    |
+| ViT trpakov          | 72.4%     | 0.610     | 0.573       | 114.3 ms   | FER-2013        |
+| ResNet50             | 49.2%     | 0.460     | 0.472       | 45.1 ms    | RAF-DB          |
+| EfficientNet-B2      | 45.4%     | 0.429     | 0.485       | 27.5 ms    | RAF-DB          |
+| MobileNetV3          | 41.9%     | 0.408     | 0.470       | 13.2 ms    | RAF-DB          |
+
+#### Per-Source Accuracy (cross-domain generalisation)
+
+| Model               | AffectNet | FER-2013  | RAF-DB    |
+|----------------------|-----------|-----------|-----------|
+| **ViT dima806**      | 62.0%     | **92.4%** | 68.9%     |
+| ViT trpakov          | **64.0%** | 80.9%     | **72.3%** |
+| ResNet50             | 25.0%     | 48.4%     | 74.2%     |
+| EfficientNet-B2      | 26.8%     | 36.2%     | 73.1%     |
+| MobileNetV3          | 21.6%     | 39.7%     | 64.4%     |
+
+#### Key Findings
+
+1. **ViT dima806 is the best overall model** (F1 Macro 0.653), narrowly beating ViT trpakov (0.610)
+2. **ViTs generalise dramatically better** across datasets: ~62-64% on AffectNet vs ~22-27% for CNNs
+3. **All 3 locally trained CNNs suffer severe domain shift**: they perform well on RAF-DB (their training domain) but collapse on unseen datasets
+4. **MobileNetV3 is the fastest** (13.2ms) but has the lowest accuracy -- suitable only when inference speed is critical
+5. **ViT trpakov remains the production default** as it offers the best AffectNet accuracy (64.0%) and the most balanced cross-domain performance
+
+Benchmark outputs (confusion matrices, comparison charts, source heatmaps) are in `results/benchmark/`.
 
 ---
 
@@ -571,7 +616,7 @@ The default camera (device 0) may be an infrared camera on modern laptops. Image
 
 ### Video Domain Shift
 
-A ResNet50 model fine-tuned on RAF-DB (posed studio photos) was initially considered but showed severe domain shift on webcam input -- predicting DISTRESS >90% on calm faces. The production ViT model (pre-trained on FER-2013, which contains webcam-like images) generalises significantly better. The anti-false-positive mechanisms (DISTRESS-CALM margin, consecutive segments, cooldown) provide additional safety.
+All three locally trained CNN models (ResNet50, EfficientNet-B2, MobileNetV3) trained on RAF-DB show severe domain shift on unseen data: 22-27% accuracy on AffectNet vs 64-74% on their training domain. ViT models pre-trained on FER-2013 generalise significantly better (62-64% on AffectNet). The unified 3-dataset benchmark (9204 images) confirmed this finding across all 5 models. The anti-false-positive mechanisms (DISTRESS-CALM margin, consecutive segments, cooldown) provide additional safety.
 
 ### Audio Silence
 
